@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Wonky V2</title>
+  </head>
+  <style>
+    body {
+      font-family: monospace;
+      font-size: large;
+
+      background: lightblue;
+    }
+    button {
+      font-family: monospace;
+      font-size: large;
+
+      background: lightgrey;
+      color: black;
+      border: 1px solid grey;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 4px;
+    }
+    button:hover {
+      background: lightblue;
+    }
+    button:active {
+      background: lightskyblue;
+    }
+    button:disabled {
+      background: lightgrey;
+      color: grey;
+    }
+    input {
+      font-family: monospace;
+      font-size: large;
+      text-align: center;
+
+      width: 32px;
+      border: 1px solid grey;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 4px;
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .wonsole {
+      height: 450px;
+      background: black;
+      color: white;
+      overflow: scroll;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 8px 6px;
+
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wemotion {
+      height: 450px;
+      background: lightcyan;
+      border: 1px solid darkcyan;
+      color: darkcyan;
+      overflow: scroll;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 8px 6px;
+
+      display: flex;
+      flex-direction: column;
+    }
+    .wemotion > div {
+      margin: auto;
+    }
+
+    .wemotion > button {
+      background: lightcyan;
+      border: 1px solid darkcyan;
+      color: darkcyan;
+    }
+
+    .wemotion > button:hover {
+      background: lightblue;
+    }
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .wonsole::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .wonsole {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+
+    .wonsole-response-resolved {
+      color: lightseagreen;
+    }
+    .wonsole-response-rejected {
+      color: lightsalmon;
+    }
+    .wonsole-action {
+      color: lightsteelblue;
+    }
+
+    .wonimate-cell {
+      display: flex;
+      flex-direction: column;
+      width: 100px;
+      height: 100px;
+      margin: 8px;
+      padding: 8px;
+      border: 1px solid darkcyan;
+      border-radius: 8px;
+      justify-content: center;
+    }
+
+    .wonimate-cell-empty {
+      display: flex;
+      width: 100px;
+      height: 100px;
+      margin: 8px;
+      padding: 8px;
+      border: 1px dashed darkcyan;
+      border-radius: 8px;
+    }
+  </style>
+  <body>
+    <script src="https://abidjappie.github.io/Wonk2/dist/s.js"></script>
+    <script src="https://abidjappie.github.io/Wonk2/dist/named-register.js"></script>
+    <script
+      type="module"
+      src="https://abidjappie.github.io/Wonk2/dist/bundle.min.js"
+    ></script>
+    <script type="module">
+      System.import("main");
+    </script>
+
+    <div>
+      <div class="wemotion">
+        <div>
+          Please connect to <span style="font-size: xx-large">Wonky</span>.
+        </div>
+        <button id="btnSwitchToWonsole">Switch to Wonsole</button>
+      </div>
+      <div class="wonsole" style="display: none">
+        <div>
+          Please connect to <span style="font-size: xx-large">Wonky</span>.
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; overflow-x: scroll">
+        <div style="display: flex; margin: auto">
+          <div style="display: flex; flex-direction: column">
+            <button id="btnConnect">Connect</button>
+            <button id="btnDisconnect">Disconnect</button>
+          </div>
+          <button id="btnResetState">Reset</button>
+          <div style="display: flex; flex-direction: column">
+            <div style="display: inline-flex">
+              <input id="cal0" type="number" value="0" />
+              <input id="cal1" type="number" value="0" />
+            </div>
+            <div style="display: inline-flex">
+              <input id="cal2" type="number" value="0" />
+              <input id="cal3" type="number" value="0" />
+            </div>
+          </div>
+          <button id="btnCal">Test Frame</button>
+          <button id="btnCustom">Play Frames</button>
+          <button onClick="window.Controller.walkAnimation()">Walk</button>
+          <button onClick="window.Controller.walkStep()">Step</button>
+          <button id="btnEmote">Emote</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; overflow-x: scroll">
+      <div
+        id="wonimate"
+        style="display: flex; flex-direction: row; margin: auto"
+      >
+        <div class="wonimate-cell-empty">
+          <div style="margin: auto">
+            <button id="btnAddWonimate">Add Frame</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let wonimating = false;
+
+      const NOTES = {
+        E4: 329.63,
+        A4: 440,
+        B4: 493.88,
+        C4: 261.63,
+      };
+      let wonsole = document.getElementsByClassName("wonsole")[0];
+      let wemotion = document.getElementsByClassName("wemotion")[0];
+
+      let btnSwitchToWonsole = document.getElementById("btnSwitchToWonsole");
+      btnSwitchToWonsole.addEventListener("click", function () {
+        wemotion.style.display = "none";
+        wonsole.style.display = "";
+      });
+
+      let btnConnect = document.getElementById("btnConnect");
+      let btnDisconnect = document.getElementById("btnDisconnect");
+      btnDisconnect.setAttribute("disabled", "");
+
+      btnConnect.addEventListener("click", async function () {
+        try {
+          await window.Controller.connect();
+          melody("sine", [NOTES.E4, NOTES.A4, NOTES.B4, NOTES.E4], 0.1);
+          btnConnect.setAttribute("disabled", "");
+          btnDisconnect.removeAttribute("disabled", "");
+        } catch (e) {}
+      });
+
+      btnDisconnect.addEventListener("click", async function () {
+        await window.Controller.disconnect();
+        melody("sine", [NOTES.B4, NOTES.B4, NOTES.C4], 0.1);
+        btnConnect.removeAttribute("disabled", "");
+        btnDisconnect.setAttribute("disabled", "");
+      });
+
+      let btnEmote = document.getElementById("btnEmote");
+      btnEmote.addEventListener("click", function () {
+        melody("sine", [NOTES.E4, NOTES.A4, NOTES.E4, NOTES.A4], 0.1);
+        window.Controller.emoteAnimation();
+      });
+
+      let btnResetState = document.getElementById("btnResetState");
+      btnResetState.addEventListener("click", function () {
+        wonimating = false;
+        wonimate.innerHTML = renderWonimateElements();
+        melody("sine", [NOTES.A4, NOTES.C4, NOTES.E4], 0.1);
+        window.Controller.resetState();
+      });
+
+      let btnCal = document.getElementById("btnCal");
+      let cal0 = document.getElementById("cal0");
+      let cal1 = document.getElementById("cal1");
+      let cal2 = document.getElementById("cal2");
+      let cal3 = document.getElementById("cal3");
+
+      btnCal.addEventListener("click", function () {
+        window.Controller.animate([
+          +cal0.value,
+          +cal1.value,
+          +cal2.value,
+          +cal3.value,
+        ]);
+      });
+
+      let wonsoleData = "";
+
+      function formatConsole(data) {
+        return `<div><span class="${
+          data[0] === "Response"
+            ? "wonsole-response-resolved"
+            : data[0] === "Rejected"
+            ? "wonsole-response-rejected"
+            : "wonsole-action"
+        }">${data[0]}</span> ${data[1]} ${data[2]}</div>`;
+      }
+      // Update the console
+      window.setInterval(() => {
+        const MAX_HEIGHT = 15;
+        const history = window.Controller.controllerState.history;
+        if (!history.length) return;
+
+        newWonsoleData = history.reduce(
+          (acc, item) => acc + formatConsole(item)
+        );
+        if (newWonsoleData === wonsoleData) return;
+        wonsoleData = newWonsoleData;
+        wonsole.innerHTML = wonsoleData;
+        wonsole.scrollTop = wonsole.scrollHeight;
+      }, 200);
+
+      function oscillatorNote(type, frequency, duration = 0.1) {
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+
+        oscillator.start(0);
+        oscillator.stop(context.currentTime + duration);
+      }
+
+      function melody(type, notes, duration) {
+        const context = new AudioContext();
+        let previousEndTime = 0;
+        for (const note of notes) {
+          const oscillator = context.createOscillator();
+          oscillator.type = type;
+          oscillator.frequency.value = note;
+
+          const gainNode = context.createGain();
+          oscillator.connect(gainNode);
+          gainNode.connect(context.destination);
+
+          oscillator.start(previousEndTime);
+          oscillator.stop(previousEndTime + duration);
+          previousEndTime = previousEndTime + duration;
+        }
+      }
+
+      function renderWonimateElement(frameId) {
+        return `
+      <div class="wonimate-cell" ${
+        wonimating ? 'style="background: lightcoral"' : ""
+      }>
+          <div style="margin: auto" onClick="window.wonimate.useValue(${frameId})">
+              ${JSON.stringify(wonimateFrames[frameId])}
+          </div>
+          <button onClick="window.wonimate.delFrame(${frameId})"> DEL </button>
+      </div>`;
+      }
+      function renderWonimateElements() {
+        let output = "";
+        for (let i = 0; i < wonimateFrames.length; i++) {
+          output += renderWonimateElement(i);
+        }
+        return (
+          output +
+          `
+      <div class="wonimate-cell-empty">
+          <div style="margin: auto">
+              <button id="btnAddWonimate">Add Frame</button>
+          </div>
+      </div>
+      `
+        );
+      }
+
+      const wonimateFrames = [];
+      let wonimate = document.getElementById("wonimate");
+
+      function setUpWonimate() {
+        let btnAddWonimate = document.getElementById("btnAddWonimate");
+        btnAddWonimate.addEventListener("click", function () {
+          wonimateFrames.push([
+            +cal0.value,
+            +cal1.value,
+            +cal2.value,
+            +cal3.value,
+          ]);
+          wonimate.innerHTML = renderWonimateElements();
+          setTimeout(setUpWonimate, 1);
+        });
+      }
+      setUpWonimate();
+
+      window.wonimate.delFrame = function (frameId) {
+        wonimateFrames.splice(frameId, 1);
+        wonimate.innerHTML = renderWonimateElements();
+        setUpWonimate();
+      };
+
+      window.wonimate.useValue = function (frameId) {
+        cal0.value = wonimateFrames[frameId][0];
+        cal1.value = wonimateFrames[frameId][1];
+        cal2.value = wonimateFrames[frameId][2];
+        cal3.value = wonimateFrames[frameId][3];
+      };
+
+      let btnCustom = document.getElementById("btnCustom");
+      btnCustom.addEventListener("click", function () {
+        wonimating = true;
+        wonimate.innerHTML = renderWonimateElements();
+        melody("sine", [NOTES.E4, NOTES.A4], 0.1);
+        window.Controller.customAnimation(wonimateFrames);
+      });
+    </script>
+  </body>
+</html>
