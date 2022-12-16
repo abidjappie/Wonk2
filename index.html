@@ -351,8 +351,17 @@
         );
       }
 
-      const wonimateFrames = [];
       let wonimate = document.getElementById("wonimate");
+
+      const wonimateFrames = [];
+      try {
+        wonimateFrames.push(
+          ...JSON.parse(localStorage.getItem("wonimate-frames"))
+        );
+        if (wonimateFrames.length) {
+          wonimate.innerHTML = renderWonimateElements();
+        }
+      } catch (e) {}
 
       function setUpWonimate() {
         let btnAddWonimate = document.getElementById("btnAddWonimate");
@@ -363,6 +372,10 @@
             +cal2.value,
             +cal3.value,
           ]);
+          localStorage.setItem(
+            "wonimate-frames",
+            JSON.stringify(wonimateFrames)
+          );
           wonimate.innerHTML = renderWonimateElements();
           setTimeout(setUpWonimate, 1);
         });
@@ -371,6 +384,7 @@
 
       window.wonimate.delFrame = function (frameId) {
         wonimateFrames.splice(frameId, 1);
+        localStorage.setItem("wonimate-frames", JSON.stringify(wonimateFrames));
         wonimate.innerHTML = renderWonimateElements();
         setUpWonimate();
       };
