@@ -1,4 +1,7 @@
 node_modules
 build
-*.ts
+animations.ts
+helpers.ts
+konashi.ts
+main.ts
 *.json
