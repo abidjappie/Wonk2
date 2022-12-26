@@ -34,6 +34,15 @@
       background: lightgrey;
       color: grey;
     }
+    select {
+      font-family: monospace;
+      font-size: large;
+
+      color: black;
+      border: 1px solid grey;
+      border-radius: 8px;
+      margin: 4px;
+    }
     input {
       font-family: monospace;
       font-size: large;
@@ -164,6 +173,10 @@
       <div style="display: flex; flex-direction: column; overflow-x: scroll">
         <div style="display: flex; margin: auto">
           <div style="display: flex; flex-direction: column">
+            <select name="driver" id="selectDriver">
+              <option value="sg90">SG 90</option>
+              <option value="rs304">RS304</option>
+            </select>
             <button id="btnConnect">Connect</button>
             <button id="btnDisconnect">Disconnect</button>
           </div>
@@ -198,6 +211,21 @@
           </div>
         </div>
       </div>
+
+      <div style="display: flex; flex-direction: column; overflow-x: scroll">
+        <div style="display: flex; margin: auto">
+          <button id="btnSlot1" onClick="loadSlot(1)">L1</button>
+          <button id="btnSlot2" onClick="loadSlot(2)">L2</button>
+          <button id="btnSlot3" onClick="loadSlot(3)">L3</button>
+          <button id="btnSlot4" onClick="loadSlot(4)">L4</button>
+        </div>
+        <div style="display: flex; margin: auto">
+          <button id="btnSlot1" onClick="saveSlot(1)">S1</button>
+          <button id="btnSlot2" onClick="saveSlot(2)">S2</button>
+          <button id="btnSlot3" onClick="saveSlot(3)">S3</button>
+          <button id="btnSlot4" onClick="saveSlot(4)">S4</button>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -216,6 +244,11 @@
       btnSwitchToWonsole.addEventListener("click", function () {
         wemotion.style.display = "none";
         wonsole.style.display = "";
+      });
+
+      let selectDriver = document.getElementById("selectDriver");
+      selectDriver.addEventListener("change", function (event) {
+        window.Controller.setDriver(event.target.value);
       });
 
       let btnConnect = document.getElementById("btnConnect");
@@ -353,7 +386,7 @@
 
       let wonimate = document.getElementById("wonimate");
 
-      const wonimateFrames = [];
+      let wonimateFrames = [];
       try {
         wonimateFrames.push(
           ...JSON.parse(localStorage.getItem("wonimate-frames"))
@@ -396,13 +429,42 @@
         cal3.value = wonimateFrames[frameId][3];
       };
 
-      let btnCustom = document.getElementById("btnCustom");
-      btnCustom.addEventListener("click", function () {
+      function doWonimate() {
+        window.Controller.resetState(false);
         wonimating = true;
         wonimate.innerHTML = renderWonimateElements();
         melody("sine", [NOTES.E4, NOTES.A4], 0.1);
         window.Controller.customAnimation(wonimateFrames);
+      }
+
+      let btnCustom = document.getElementById("btnCustom");
+      btnCustom.addEventListener("click", function () {
+        doWonimate();
       });
+
+      function saveSlot(slot) {
+        localStorage.setItem(
+          `wonimate-slot-${slot}`,
+          JSON.stringify(wonimateFrames)
+        );
+      }
+
+      function loadSlot(slot) {
+        try {
+          const get = localStorage.getItem(`wonimate-slot-${slot}`);
+          if (!get) throw "";
+
+          wonimateFrames = [];
+          wonimateFrames.push(...JSON.parse(get));
+
+          if (wonimateFrames.length) {
+            wonimate.innerHTML = renderWonimateElements();
+          }
+          setUpWonimate();
+
+          setTimeout(doWonimate, 2);
+        } catch (e) {}
+      }
     </script>
   </body>
 </html>
