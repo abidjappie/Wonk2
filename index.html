@@ -173,6 +173,7 @@
       <div style="display: flex; flex-direction: column; overflow-x: scroll">
         <div style="display: flex; margin: auto">
           <div style="display: flex; flex-direction: column">
+            <div style="text-align: center">Motor Driver</div>
             <select name="driver" id="selectDriver">
               <option value="sg90">SG 90</option>
               <option value="rs304">RS304</option>
@@ -182,17 +183,13 @@
           </div>
           <button id="btnResetState">Reset</button>
           <div style="display: flex; flex-direction: column">
-            <div style="display: inline-flex">
-              <input id="cal0" type="number" value="0" />
-              <input id="cal1" type="number" value="0" />
+            <div style="display: flex; flex-grow: 1">
+              <button id="btnCustom">Play Frames</button>
             </div>
-            <div style="display: inline-flex">
-              <input id="cal2" type="number" value="0" />
-              <input id="cal3" type="number" value="0" />
-            </div>
+
+            <div><input id="inputAutoplay" type="checkbox" />Autoplay</div>
           </div>
-          <button id="btnCal">Test Frame</button>
-          <button id="btnCustom">Play Frames</button>
+
           <button onClick="window.Controller.walkAnimation()">Walk</button>
           <button onClick="window.Controller.walkStep()">Step</button>
           <button id="btnEmote">Emote</button>
@@ -211,25 +208,48 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <div style="display: flex; flex-direction: column; overflow-x: scroll">
-        <div style="display: flex; margin: auto">
-          <button id="btnSlot1" onClick="loadSlot(1)">L1</button>
-          <button id="btnSlot2" onClick="loadSlot(2)">L2</button>
-          <button id="btnSlot3" onClick="loadSlot(3)">L3</button>
-          <button id="btnSlot4" onClick="loadSlot(4)">L4</button>
+    <div style="display: flex; flex-direction: column; overflow-x: scroll">
+      <div style="display: flex; margin: auto">
+        <div style="display: flex; flex-direction: column">
+          <div style="display: inline-flex">
+            <input id="cal0" type="number" value="0" />
+            <input id="cal1" type="number" value="0" />
+          </div>
+          <div style="display: inline-flex">
+            <input id="cal2" type="number" value="0" />
+            <input id="cal3" type="number" value="0" />
+          </div>
         </div>
-        <div style="display: flex; margin: auto">
-          <button id="btnSlot1" onClick="saveSlot(1)">S1</button>
-          <button id="btnSlot2" onClick="saveSlot(2)">S2</button>
-          <button id="btnSlot3" onClick="saveSlot(3)">S3</button>
-          <button id="btnSlot4" onClick="saveSlot(4)">S4</button>
+        <div style="display: flex; flex-direction: row">
+          <button id="btnCal">Test Frame</button>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <div style="display: flex; flex-direction: row; margin: auto">
+            <button id="btnSlot1" onClick="loadSlot(1)">L1</button>
+            <button id="btnSlot2" onClick="loadSlot(2)">L2</button>
+            <button id="btnSlot3" onClick="loadSlot(3)">L3</button>
+            <button id="btnSlot4" onClick="loadSlot(4)">L4</button>
+          </div>
+          <div style="display: flex; flex-direction: row; margin: auto">
+            <button id="btnSlot1" onClick="saveSlot(1)">S1</button>
+            <button id="btnSlot2" onClick="saveSlot(2)">S2</button>
+            <button id="btnSlot3" onClick="saveSlot(3)">S3</button>
+            <button id="btnSlot4" onClick="saveSlot(4)">S4</button>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
       let wonimating = false;
+      let autoPlay = false;
+
+      let inputAutoplay = document.getElementById("inputAutoplay");
+      inputAutoplay.addEventListener("change", function () {
+        autoPlay = inputAutoplay.checked;
+      });
 
       const NOTES = {
         E4: 329.63,
@@ -399,6 +419,8 @@
       function setUpWonimate() {
         let btnAddWonimate = document.getElementById("btnAddWonimate");
         btnAddWonimate.addEventListener("click", function () {
+          wonimating = false;
+          window.Controller.resetState(false);
           wonimateFrames.push([
             +cal0.value,
             +cal1.value,
@@ -430,7 +452,6 @@
       };
 
       function doWonimate() {
-        window.Controller.resetState(false);
         wonimating = true;
         wonimate.innerHTML = renderWonimateElements();
         melody("sine", [NOTES.E4, NOTES.A4], 0.1);
@@ -439,6 +460,8 @@
 
       let btnCustom = document.getElementById("btnCustom");
       btnCustom.addEventListener("click", function () {
+        window.Controller.resetState(false);
+        wonimate.innerHTML = renderWonimateElements();
         doWonimate();
       });
 
@@ -454,6 +477,9 @@
           const get = localStorage.getItem(`wonimate-slot-${slot}`);
           if (!get) throw "";
 
+          window.Controller.resetState(false);
+          wonimating = false;
+
           wonimateFrames = [];
           wonimateFrames.push(...JSON.parse(get));
 
@@ -462,7 +488,7 @@
           }
           setUpWonimate();
 
-          setTimeout(doWonimate, 2);
+          if (autoPlay) setTimeout(doWonimate, 2);
         } catch (e) {}
       }
     </script>
